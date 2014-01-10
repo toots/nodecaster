@@ -3,7 +3,7 @@ class module.exports.Source extends Stream.Duplex
     super
 
     @queueSize = opts.queueSize || 524288
-    @queue     = new Buffer @queueSize
+    @queue     = new Buffer
 
   _write: (chunk, encoding, callback) ->
     data = new Buffer chunk, encoding
