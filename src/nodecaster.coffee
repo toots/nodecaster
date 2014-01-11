@@ -1,1 +1,3 @@
-# foo
+{MpegSource} = require "sources/mpeg"
+
+
