@@ -13,15 +13,11 @@ describe "Client", ->
     expect(Client.__super__.constructor).toHaveBeenCalledWith highWaterMark: 524288
 
   it "should initialize an array of clients", ->
-    {Client} = require "../src/client"
-
     client = new Client queueSize: 1234
 
     expect(client.clients).not.toBeNull()
 
   it "should forward metadata events to connected pipes", ->
-    {Client} = require "../src/client"
-
     client1 = new Client
     client2 = new Client
 
@@ -34,8 +30,6 @@ describe "Client", ->
     expect(client2.emit).toHaveBeenCalledWith "metadata", "foo"
 
   it "should stop forwarding events when pipes are disconnected", ->
-    {Client} = require "../src/client"
-
     client1 = new Client
     client2 = new Client
 
@@ -49,8 +43,6 @@ describe "Client", ->
     expect(client2.emit).not.toHaveBeenCalled()
 
   it "should disconnect all clients when calling unpipe with no arguments", ->
-    {Client} = require "../src/client"
-
     client1 = new Client
     client2 = new Client
     client3 = new Client
