@@ -1,3 +1,2 @@
-{MpegSource} = require "sources/mpeg"
 
 
