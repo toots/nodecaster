@@ -1,7 +1,7 @@
 _           = require "underscore"
 {Transform} = require "stream"
 
-class module.exports.Client extends Transform
+class module.exports.Stream extends Transform
   constructor: (opts = {}) ->
     super highWaterMark: opts.queueSize || 524288
 
@@ -22,7 +22,8 @@ class module.exports.Client extends Transform
     super
     
     unless stream?
-      @removeAllListeners "metadata"
+      _.each @clients, ([str, fn]) =>
+        @removeListener "metadata", fn
       @clients = []
       return
 

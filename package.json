@@ -28,6 +28,7 @@
     "underscore" : "1.5.2"
   },
   "devDependencies": {
+    "buffer-equal"  : "0.0.0",
     "coffee-script" : "1.6.3",
     "jasmine-node"  : "1.12.0"
   }

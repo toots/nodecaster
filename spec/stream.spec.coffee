@@ -1,25 +1,25 @@
-{Client} = require "../src/client"
+{Stream} = require "../src/stream"
 
-describe "Client", ->
+describe "Stream", ->
   it "should initialize with the proper queue size", ->
-    spyOn Client.__super__, "constructor"
+    spyOn Stream.__super__, "constructor"
 
-    new Client queueSize: 1234
+    new Stream queueSize: 1234
 
-    expect(Client.__super__.constructor).toHaveBeenCalledWith highWaterMark: 1234
+    expect(Stream.__super__.constructor).toHaveBeenCalledWith highWaterMark: 1234
 
-    new Client
+    new Stream
 
-    expect(Client.__super__.constructor).toHaveBeenCalledWith highWaterMark: 524288
+    expect(Stream.__super__.constructor).toHaveBeenCalledWith highWaterMark: 524288
 
   it "should initialize an array of clients", ->
-    client = new Client queueSize: 1234
+    client = new Stream queueSize: 1234
 
     expect(client.clients).not.toBeNull()
 
   it "should forward metadata events to connected pipes", ->
-    client1 = new Client
-    client2 = new Client
+    client1 = new Stream
+    client2 = new Stream
 
     client1.pipe client2
 
@@ -30,8 +30,8 @@ describe "Client", ->
     expect(client2.emit).toHaveBeenCalledWith "metadata", "foo"
 
   it "should stop forwarding events when pipes are disconnected", ->
-    client1 = new Client
-    client2 = new Client
+    client1 = new Stream
+    client2 = new Stream
 
     client1.pipe client2
     client1.unpipe client2
@@ -43,9 +43,9 @@ describe "Client", ->
     expect(client2.emit).not.toHaveBeenCalled()
 
   it "should disconnect all clients when calling unpipe with no arguments", ->
-    client1 = new Client
-    client2 = new Client
-    client3 = new Client
+    client1 = new Stream
+    client2 = new Stream
+    client3 = new Stream
 
     client1.pipe client2
     client1.pipe client3
