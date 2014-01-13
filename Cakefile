@@ -4,7 +4,7 @@ system = (command, args) ->
   spawn command, args, stdio: "inherit"
 
 task 'build', 'Compile coffee scripts into plain Javascript files', ->
-  child = exec "coffee -c -o lib src/*.coffee", (err, stdout, stderr) ->
+  child = exec "coffee -c -o lib src", (err, stdout, stderr) ->
     if err?
       console.error "Error :"
       console.dir   err
