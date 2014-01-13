@@ -1,6 +1,12 @@
 {Stream} = require "../src/stream"
 
 describe "Stream", ->
+  beforeEach ->
+    @callback = ->
+
+  afterEach ->
+    @callback = ->
+
   it "should initialize with the proper queue size", ->
     spyOn Stream.__super__, "constructor"
 
@@ -12,50 +18,61 @@ describe "Stream", ->
 
     expect(Stream.__super__.constructor).toHaveBeenCalledWith highWaterMark: 524288
 
-  it "should initialize an array of clients", ->
-    client = new Stream queueSize: 1234
+  it "should initialize an array of streams", ->
+    stream = new Stream queueSize: 1234
 
-    expect(client.clients).not.toBeNull()
+    expect(stream.streams).not.toBeNull()
 
   it "should forward metadata events to connected pipes", ->
-    client1 = new Stream
-    client2 = new Stream
+    stream1 = new Stream
+    stream2 = new Stream
 
-    client1.pipe client2
+    stream1.pipe stream2
 
-    spyOn client2, "emit"
+    spyOn stream2, "emit"
 
-    client1.emit "metadata", "foo"
+    stream1.emit "metadata", "foo"
 
-    expect(client2.emit).toHaveBeenCalledWith "metadata", "foo"
+    expect(stream2.emit).toHaveBeenCalledWith "metadata", "foo"
 
   it "should stop forwarding events when pipes are disconnected", ->
-    client1 = new Stream
-    client2 = new Stream
+    stream1 = new Stream
+    stream2 = new Stream
 
-    client1.pipe client2
-    client1.unpipe client2
+    stream1.pipe stream2
+    stream1.unpipe stream2
 
-    spyOn client2, "emit"
+    spyOn stream2, "emit"
 
-    client1.emit "metadata", "foo"
+    stream1.emit "metadata", "foo"
 
-    expect(client2.emit).not.toHaveBeenCalled()
+    expect(stream2.emit).not.toHaveBeenCalled()
 
-  it "should disconnect all clients when calling unpipe with no arguments", ->
-    client1 = new Stream
-    client2 = new Stream
-    client3 = new Stream
+  it "should disconnect all streams when calling unpipe with no arguments", ->
+    stream1 = new Stream
+    stream2 = new Stream
+    stream3 = new Stream
 
-    client1.pipe client2
-    client1.pipe client3
+    stream1.pipe stream2
+    stream1.pipe stream3
 
-    client1.unpipe()
+    stream1.unpipe()
 
-    spyOn client2, "emit"
-    spyOn client3, "emit"
+    spyOn stream2, "emit"
+    spyOn stream3, "emit"
 
-    client1.emit "metadata", "foo"
+    stream1.emit "metadata", "foo"
 
-    expect(client2.emit).not.toHaveBeenCalled()
-    expect(client3.emit).not.toHaveBeenCalled()
+    expect(stream2.emit).not.toHaveBeenCalled()
+    expect(stream3.emit).not.toHaveBeenCalled()
+
+  it "should pass data untouched", ->
+    stream = new Stream
+
+    spyOn stream, "push"
+    spyOn this,   "callback"
+
+    stream._transform "foo", "bla", @callback
+
+    expect(stream.push).toHaveBeenCalledWith "foo", "bla"
+    expect(@callback).toHaveBeenCalled()

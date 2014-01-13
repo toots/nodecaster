@@ -8,9 +8,6 @@ class module.exports.MpegClient extends Stream
     @icyMetadataInterval = opts.icyMetadataInterval || 16000
     @byteCount           = 0
 
-    @on "metadata", (metadata) ->
-      @metadata = metadata
-
   buildMetadataBlock: ->
     unless @metadata?
       data = new Buffer 1
@@ -42,14 +39,17 @@ class module.exports.MpegClient extends Stream
     data = new Buffer chunk, encoding
 
     if @byteCount + data.length > @icyMetadataInterval
+      before = data.slice 0, @icyMetadataInterval - @byteCount
+      after  = data.slice @icyMetadataInterval - @byteCount
+
       @push Buffer.concat [
-        data.slice(0, @icyMetadataInterval - @byteCount),
-        @buildMetadataBlock(),
-        data.slice(@icyMetadataInterval - @byteCount)
+        before, @buildMetadataBlock(), after
       ]
 
       @metadata  = null
-      @byteCount = 0
+      @byteCount = after.length
     else
       @push data
       @byteCount += data.length
+
+    callback()

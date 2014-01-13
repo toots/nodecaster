@@ -2,6 +2,12 @@ bufferEqual  = require "buffer-equal"
 {MpegClient} = require "../../src/clients/mpeg"
 
 describe "MpegClient", ->
+  beforeEach ->
+    @callback = ->
+
+  afterEach ->
+    @callback = null
+
   it "should do initialize with ICY metadata if told to", ->
     client = new MpegClient
 
@@ -78,9 +84,9 @@ describe "MpegClient", ->
     spyOn MpegClient.__super__, "_transform"
     spyOn client, "buildMetadataBlock"
 
-    client._transform "foo"
+    client._transform "foo", null, @callback
 
-    expect(MpegClient.__super__._transform).toHaveBeenCalledWith("foo")
+    expect(MpegClient.__super__._transform).toHaveBeenCalledWith("foo", null, @callback)
     expect(client.buildMetadataBlock).not.toHaveBeenCalled()
 
   it "should do nothing when using icy metadata but below byteCount", ->
@@ -93,19 +99,21 @@ describe "MpegClient", ->
       ret = data
 
     spyOn client, "buildMetadataBlock"
+    spyOn this, "callback"
 
-    client._transform "foo", "ascii"
+    client._transform "foo", "ascii", @callback
 
     expect(client.push).toHaveBeenCalled()
     expect(client.buildMetadataBlock).not.toHaveBeenCalled()
     expect(bufferEqual(ret,expected)).toBeTruthy()
+    expect(@callback).toHaveBeenCalled()
 
   it "should insert metadata when needed", ->
     client = new MpegClient icyMetadata: true, icyMetadataInterval: 4
     client.metadata = title: "foobar"
     client.byteCount = 1
 
-    ret  = null
+    ret = null
 
     metadataBlock = new Buffer 33
     metadataBlock.fill 0
@@ -120,7 +128,11 @@ describe "MpegClient", ->
     spyOn(client, "push").andCallFake (data) ->
       ret = data
 
-    client._transform "blabla", "ascii"
+    spyOn this, "callback"
+
+    client._transform "blabla", "ascii", @callback
 
     expect(client.push).toHaveBeenCalled()
     expect(bufferEqual(ret,expected)).toBeTruthy()
+    expect(client.byteCount).toEqual 3
+    expect(@callback).toHaveBeenCalled()

@@ -7,8 +7,11 @@ class module.exports.Stream extends Transform
 
     @clients = []
 
+    @on "metadata", (metadata) ->
+      @metadata = metadata
+
   pipe: (stream) ->
-    super
+    stream.metadata = @metadata
 
     callback = (args...) ->
       args.unshift "metadata"
@@ -18,9 +21,9 @@ class module.exports.Stream extends Transform
 
     @clients.push [stream, callback]
 
-  unpipe: (stream) ->
     super
-    
+
+  unpipe: (stream) ->
     unless stream?
       _.each @clients, ([str, fn]) =>
         @removeListener "metadata", fn
@@ -34,8 +37,10 @@ class module.exports.Stream extends Transform
       @removeListener "metadata", client[1]
       @clients = _.without @clients, client[0]
 
+    super
+
   _transform: (chunk, encoding, callback) ->
-    @push new Buffer chunk, encoding
+    @push chunk, encoding
     callback()
 
   _flush: (callback) ->
