@@ -12,18 +12,20 @@ class module.exports.MpegClient extends Stream
       @metadata = metadata
 
   buildMetadataBlock: ->
-    return "0" unless @metadata?
+    unless @metadata?
+      data = new Buffer 0
+      data.fill 0
+      return data
 
     title = @metadata.title || "Unknown title"
     if @metadata.artist?
       title += " -- #{@metadata.artist}"
 
-    title = "StreamTitle='#{title.replace(/'/g, "\\'")}'"
+    title = "StreamTitle='#{title.replace(/'/g, "\\'")}';"
 
-    if title.length > 4079
-      title = "#{title.slice(0, 4079 - 3)}..."
+    if title.length > 4080
+      title = "#{title.slice(0, 4080 - 5)}...';"
 
-    title += ";"
     length = Math.ceil title.length / 16
 
     data = new Buffer (1+length*16)
