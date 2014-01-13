@@ -35,7 +35,7 @@ class module.exports.Stream extends Transform
 
     if client?
       @removeListener "metadata", client[1]
-      @clients = _.without @clients, client[0]
+      @clients = _.without @clients, client
 
     super
 

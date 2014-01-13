@@ -34,6 +34,7 @@ describe "Stream", ->
     stream1.emit "metadata", "foo"
 
     expect(stream2.emit).toHaveBeenCalledWith "metadata", "foo"
+    expect(stream1.clients[0][0]).toEqual stream2
 
   it "should stop forwarding events when pipes are disconnected", ->
     stream1 = new Stream
@@ -47,6 +48,7 @@ describe "Stream", ->
     stream1.emit "metadata", "foo"
 
     expect(stream2.emit).not.toHaveBeenCalled()
+    expect(stream1.clients).toEqual []
 
   it "should disconnect all streams when calling unpipe with no arguments", ->
     stream1 = new Stream
@@ -55,6 +57,9 @@ describe "Stream", ->
 
     stream1.pipe stream2
     stream1.pipe stream3
+
+    expect(stream1.clients[0][0]).toEqual stream2
+    expect(stream1.clients[1][0]).toEqual stream3
 
     stream1.unpipe()
 
@@ -65,6 +70,7 @@ describe "Stream", ->
 
     expect(stream2.emit).not.toHaveBeenCalled()
     expect(stream3.emit).not.toHaveBeenCalled()
+    expect(stream1.clients).toEqual []
 
   it "should pass data untouched", ->
     stream = new Stream

@@ -17,7 +17,7 @@ app.get "/source", (req, res) ->
 
   client = new MpegClient icyMetadata: icyMetadata
 
-  res.set "icy-metaint", client.icyMetadataInterval
+  res.set "icy-metaint", client.icyMetadataInterval if icyMetadata
 
   source.pipe(client).pipe res
 
