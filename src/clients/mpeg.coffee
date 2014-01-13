@@ -42,11 +42,13 @@ class module.exports.MpegClient extends Stream
     data = new Buffer chunk, encoding
 
     if @byteCount + data.length > @icyMetadataInterval
-      @push data.slice(0, @icyMetadataInterval - @byteCount)
-      @push @getMetadataBlock()
-      @push data.slice(@icyMetadataInterval - @byteCount)
+      @push Buffer.concat [
+        data.slice(0, @icyMetadataInterval - @byteCount),
+        @buildMetadataBlock(),
+        data.slice(@icyMetadataInterval - @byteCount)
+      ]
 
-      @metadata  = nil
+      @metadata  = null
       @byteCount = 0
     else
       @push data
