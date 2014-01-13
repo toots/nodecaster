@@ -8,7 +8,7 @@ describe "Source", ->
 
     expect(source.metadata).toEqual "foo"
 
-  it "should always flush data", ->
+  it "should always be in flowing mode", ->
     ret = null
     spyOn(Source.__super__, "on").andCallFake (event) ->
       ret = event
