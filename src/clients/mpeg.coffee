@@ -1,6 +1,6 @@
-{Stream} = require "../stream"
+{Client} = require "../client"
 
-class module.exports.MpegClient extends Stream
+class module.exports.MpegClient extends Client
   constructor: (opts = {}) ->
     super
 

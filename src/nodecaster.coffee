@@ -1,8 +1,8 @@
 {MpegClient} = require "./clients/mpeg"
-{Stream}     = require "./stream"
+{Source}     = require "./source"
 express      = require "express"
 
-source = new Stream
+source = new Source
 hasSource = false
 
 app = express()
@@ -15,11 +15,16 @@ app.get "/source", (req, res) ->
   else
     icyMetadata = false
 
-  client = new MpegClient icyMetadata: icyMetadata
+  client = new MpegClient
+    icyMetadata: icyMetadata
+    destination: res
 
   res.set "icy-metaint", client.icyMetadataInterval if icyMetadata
 
-  source.pipe(client).pipe res
+  source.addClient client
+
+  res.on "end", ->
+    source.removeClient client
 
 app.post "/source", (req, res) ->
   return res.status(503).end("mount point taken!") if hasSource
