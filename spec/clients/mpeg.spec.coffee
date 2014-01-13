@@ -35,7 +35,7 @@ describe "MpegClient", ->
   it "should return an empty block where there are no metadata", ->
     client = new MpegClient
 
-    metadataBlock = new Buffer 0
+    metadataBlock = new Buffer 1
     metadataBlock.fill 0
 
     expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()

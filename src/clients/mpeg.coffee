@@ -13,7 +13,7 @@ class module.exports.MpegClient extends Stream
 
   buildMetadataBlock: ->
     unless @metadata?
-      data = new Buffer 0
+      data = new Buffer 1
       data.fill 0
       return data
 
