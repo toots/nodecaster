@@ -8,6 +8,15 @@ describe "Source", ->
 
     expect(source.metadata).toEqual "foo"
 
+  it "should always flush data", ->
+    ret = null
+    spyOn(Source.__super__, "on").andCallFake (event) ->
+      ret = event
+
+    source = new Source
+
+    expect(ret).toEqual "data"
+
   it "should know how to add clients", ->
     source = new Source
     client = new Client

@@ -11,6 +11,9 @@ class module.exports.Source extends PassThrough
       _.each @clients, (client) =>
         client.emit "metadata", metadata
 
+    # Always flush data in sources
+    @on "data", ->
+
     @clients = []
 
   addClient: (client) ->

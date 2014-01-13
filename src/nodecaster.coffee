@@ -2,13 +2,12 @@
 {Source}     = require "./source"
 express      = require "express"
 
-source = new Source
-hasSource = false
+source = null
 
 app = express()
 
 app.get "/source", (req, res) ->
-  res.status(404).end("no source!") unless hasSource
+  return res.status(404).end("no source!") unless source?
 
   if req.get("Icy-MetaData") == "1"
     icyMetadata = true
@@ -20,6 +19,7 @@ app.get "/source", (req, res) ->
     destination: res
 
   res.set "icy-metaint", client.icyMetadataInterval if icyMetadata
+  res.set "Content-Type", "audio/mpeg"
 
   source.addClient client
 
@@ -27,13 +27,12 @@ app.get "/source", (req, res) ->
     source.removeClient client
 
 app.post "/source", (req, res) ->
-  return res.status(503).end("mount point taken!") if hasSource
+  return res.status(503).end("mount point taken!") if source?
 
-  hasSource = true
+  source = new Source
 
   req.on "end", ->
-    hasSource = false
-    req.unpipe source
+    source = null
 
   req.pipe source
 
