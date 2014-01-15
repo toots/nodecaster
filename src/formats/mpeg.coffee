@@ -1,6 +1,9 @@
 {Client} = require "../client"
+{Source} = require "../source"
 
-class module.exports.MpegClient extends Client
+module.exports.Mpeg = Mpeg = {}
+
+class Mpeg.Client extends Client
   constructor: (opts = {}) ->
     super
 
@@ -53,3 +56,5 @@ class module.exports.MpegClient extends Client
       @byteCount += data.length
 
     callback()
+
+Mpeg.Source = Source
