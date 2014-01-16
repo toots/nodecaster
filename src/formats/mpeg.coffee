@@ -1,6 +1,5 @@
 _             = require "underscore"
 {Client}      = require "../client"
-{HttpHandler} = require "../http"
 {Source}      = require "../source"
 
 module.exports.Mpeg = Mpeg = {}
@@ -59,41 +58,4 @@ class Mpeg.Client extends Client
 
     callback()
 
-Mpeg.Source = Source
-
-class Mpeg.HttpHandler extends HttpHandler
-  constructor: ->
-    super
-
-    @metadataHandler = (req, res, next) =>
-      return next() unless req.query.mount == @mount
-
-      @source.emit "metadata", title: req.query.title, artist: req.query.artist
-      res.send "Thanks, brah!"
-
-    @app.use "/admin/metadata", @metadataHandler
-
-  destroy: ->
-    super
-
-    # Gni..
-    @app.stack = _.reject @app.stack, ({handle}) =>
-      handle == @metadataHandler
-
-  createClient: (req, res, next) ->
-    if req.get("Icy-MetaData") == "1"
-      icyMetadata = true
-    else
-      icyMetadata = false
-
-    client = new Mpeg.Client
-      icyMetadata: icyMetadata
-      destination: res
-
-    res.set "icy-metaint", client.icyMetadataInterval if icyMetadata
-    res.set "Content-Type", "audio/mpeg"
-
-    next client
-
-  createSource: ->
-    @source = new Mpeg.Source
+class Mpeg.Source extends Source
