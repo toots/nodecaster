@@ -1,6 +1,7 @@
 _       = require "underscore"
 express = require "express"
 {Mpeg}  = require "./http/mpeg"
+{Ogg}   = require "./http/ogg"
 
 class ExpressHandler
   constructor: (@app) ->
@@ -20,9 +21,13 @@ class ExpressHandler
     if @sources[mount]?
       return res.status(503).end "mount point taken!"
 
-    switch req.get("Content-Type")
+    mime = req.get "Content-Type"
+
+    switch mime
       when "audio/mpeg"
         handler = new Mpeg.HttpHandler @app, mount
+      when "application/ogg", "audio/ogg", "video/ogg"
+        handler = new Ogg.HttpHandler @app, mount
       else
         return res.send 501
 
@@ -34,6 +39,7 @@ class ExpressHandler
     req.pipe handler.source
 
     @app.get mount, (req, res) ->
+      res.set "Content-Type", mime
       handler.serveClient req, res
 
     handler.source.on "finish", =>
@@ -57,7 +63,7 @@ class ExpressHandler
       express.basicAuth(source.user, source.password) req, res, next
 
     fn req, res, ->
-      source.handler.source.emit "metadata", title: req.query.title, artist: req.query.artist
+      source.handler.emit "metadata", title: req.query.title, artist: req.query.artist
       res.send "Thanks, brah!"
 
 module.exports =

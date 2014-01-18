@@ -1,138 +1,185 @@
 bufferEqual = require "buffer-equal"
 {Mpeg}      = require "../../src/formats/mpeg"
-
-describe "Mpeg.Client", ->
+  
+describe "Mpeg", ->
   beforeEach ->
     @callback = ->
-
+  
   afterEach ->
     @callback = null
+  
+  describe "Client", ->
+  
+    it "should do initialize with ICY metadata if told to", ->
+      client = new Mpeg.Client
+  
+      expect(client.icyMetadata).toEqual false
+      expect(client.icyMetadataInterval).toEqual 16000
+  
+      client = new Mpeg.Client icyMetadata: true, icyMetadataInterval: 1234
+  
+      expect(client.icyMetadata).toEqual true
+      expect(client.icyMetadataInterval).toEqual 1234
+  
+    it "should listen to the metadata events", ->
+      client = new Mpeg.Client
+  
+      client.emit "metadata", "foo"
+  
+      expect(client.metadata).toEqual "foo"
+  
+    it "should be able to build a metadata block", ->
+      client = new Mpeg.Client
+  
+      client.metadata = title: "foobar"
+  
+      metadataBlock = new Buffer 33
+      metadataBlock.fill 0
+      metadataBlock.writeUInt8 2, 0
+      metadataBlock.write      "StreamTitle='foobar';", 1
+  
+      expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
+  
+    it "should return an empty block where there are no metadata", ->
+      client = new Mpeg.Client
+  
+      metadataBlock = new Buffer 1
+      metadataBlock.fill 0
+  
+      expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
+  
+    it "should be able to combine title and artist when given", ->
+      client = new Mpeg.Client
+  
+      client.metadata = title: "foo", artist: "bar"
+  
+      metadataBlock = new Buffer 33
+      metadataBlock.fill 0
+      metadataBlock.writeUInt8 2, 0
+      metadataBlock.write      "StreamTitle='foo -- bar';", 1
+  
+      expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
+  
+    it "should cut stream title when too long", ->
+      client = new Mpeg.Client
+  
+      buffer = new Buffer 4083
+      buffer.fill "a"
+  
+      client.metadata = title: buffer.toString()
+  
+      buffer = new Buffer 4080
+      buffer.fill "a"
+      buffer.write "StreamTitle='", 0
+      buffer.write "...';", 4075
+  
+      metadataBlock = new Buffer 4081
+      metadataBlock.fill 0
+      metadataBlock.writeUInt8 255, 0
+      metadataBlock.write      buffer.toString(), 1
+  
+      expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
+  
+    it "should do nothing if not using icy metadata", ->
+      client = new Mpeg.Client
+  
+      spyOn Mpeg.Client.__super__, "_transform"
+      spyOn client, "buildMetadataBlock"
+      spyOn this, "callback"
+  
+      ret = null
+  
+      spyOn(client, "push").andCallFake (arg) ->
+        ret = arg
+  
+      client._transform {type: "data", data: "foo"}, null, @callback
+  
+      expect(client.push).toHaveBeenCalled()
+      expect(ret.toString()).toEqual "foo"
+      expect(client.buildMetadataBlock).not.toHaveBeenCalled()
+      expect(@callback).toHaveBeenCalled()
+  
+    it "should do nothing when using icy metadata but below byteCount", ->
+      client = new Mpeg.Client icyMetadata: true
+  
+      ret      = null
+  
+      spyOn(client, "push").andCallFake (data) ->
+        ret = data
+  
+      spyOn client, "buildMetadataBlock"
+      spyOn this, "callback"
+  
+      client._transform {type: "data", data: "foo"}, null, @callback
+  
+      expect(client.push).toHaveBeenCalled()
+      expect(client.buildMetadataBlock).not.toHaveBeenCalled()
+      expect(ret.toString()).toEqual "foo"
+      expect(@callback).toHaveBeenCalled()
+  
+    it "should insert metadata when needed", ->
+      client = new Mpeg.Client icyMetadata: true, icyMetadataInterval: 4
+      client.metadata = title: "foobar"
+      client.byteCount = 1
+  
+      ret = null
+  
+      metadataBlock = new Buffer 33
+      metadataBlock.fill 0
+      metadataBlock.writeUInt8 2, 0
+      metadataBlock.write      "StreamTitle='foobar';", 1
+  
+      expected = new Buffer 39
+      expected.write "bla", 0
+      expected.write "bla", 36
+      metadataBlock.copy expected, 3
+  
+      spyOn(client, "push").andCallFake (data) ->
+        ret = data
+  
+      spyOn this, "callback"
+  
+      client._transform {type: "data", data: "blabla"}, null, @callback
+  
+      expect(client.push).toHaveBeenCalled()
+      expect(bufferEqual(ret,expected)).toBeTruthy()
+      expect(client.byteCount).toEqual 3
+      expect(client.metadata).toBeNull()
+      expect(@callback).toHaveBeenCalled()
+  
+    it "should process metadata", ->
+      client = new Mpeg.Client
+  
+      spyOn this, "callback"
+  
+      client._transform {type: "metadata", data: "gni"}, null, @callback
+  
+      expect(client.metadata).toEqual "gni"
+      expect(@callback).toHaveBeenCalled()
+  
+  describe "Source", ->
+    it "should be able to receive metadata", ->
+      source = new Mpeg.Source
+  
+      spyOn source, "push"
+  
+      source.onMetadata "foo"
+  
+      expect(source.metadata).toEqual "foo"
+      expect(source.push).toHaveBeenCalledWith type: "metadata", data: "foo"
 
-  it "should do initialize with ICY metadata if told to", ->
-    client = new Mpeg.Client
+    it "should be able to process data", ->
+      source = new Mpeg.Source
 
-    expect(client.icyMetadata).toEqual false
-    expect(client.icyMetadataInterval).toEqual 16000
+      ret = null
 
-    client = new Mpeg.Client icyMetadata: true, icyMetadataInterval: 1234
+      spyOn(source, "push").andCallFake (data) ->
+        ret = data
 
-    expect(client.icyMetadata).toEqual true
-    expect(client.icyMetadataInterval).toEqual 1234
+      spyOn this, "callback"
 
-  it "should listen to the metadata events", ->
-    client = new Mpeg.Client
+      source._transform "foo", null, @callback
 
-    client.emit "metadata", "foo"
-
-    expect(client.metadata).toEqual "foo"
-
-  it "should be able to build a metadata block", ->
-    client = new Mpeg.Client
-
-    client.metadata = title: "foobar"
-
-    metadataBlock = new Buffer 33
-    metadataBlock.fill 0
-    metadataBlock.writeUInt8 2, 0
-    metadataBlock.write      "StreamTitle='foobar';", 1
-
-    expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
-
-  it "should return an empty block where there are no metadata", ->
-    client = new Mpeg.Client
-
-    metadataBlock = new Buffer 1
-    metadataBlock.fill 0
-
-    expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
-
-  it "should be able to combine title and artist when given", ->
-    client = new Mpeg.Client
-
-    client.metadata = title: "foo", artist: "bar"
-
-    metadataBlock = new Buffer 33
-    metadataBlock.fill 0
-    metadataBlock.writeUInt8 2, 0
-    metadataBlock.write      "StreamTitle='foo -- bar';", 1
-
-    expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
-
-  it "should cut stream title when too long", ->
-    client = new Mpeg.Client
-
-    buffer = new Buffer 4083
-    buffer.fill "a"
-
-    client.metadata = title: buffer.toString()
-
-    buffer = new Buffer 4080
-    buffer.fill "a"
-    buffer.write "StreamTitle='", 0
-    buffer.write "...';", 4075
-
-    metadataBlock = new Buffer 4081
-    metadataBlock.fill 0
-    metadataBlock.writeUInt8 255, 0
-    metadataBlock.write      buffer.toString(), 1
-
-    expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
-
-  it "should do nothing if not using icy metadata", ->
-    client = new Mpeg.Client
-
-    spyOn Mpeg.Client.__super__, "_transform"
-    spyOn client, "buildMetadataBlock"
-
-    client._transform "foo", null, @callback
-
-    expect(Mpeg.Client.__super__._transform).toHaveBeenCalledWith("foo", null, @callback)
-    expect(client.buildMetadataBlock).not.toHaveBeenCalled()
-
-  it "should do nothing when using icy metadata but below byteCount", ->
-    client = new Mpeg.Client icyMetadata: true
-
-    ret      = null
-    expected = new Buffer "foo", "ascii"
-
-    spyOn(client, "push").andCallFake (data) ->
-      ret = data
-
-    spyOn client, "buildMetadataBlock"
-    spyOn this, "callback"
-
-    client._transform "foo", "ascii", @callback
-
-    expect(client.push).toHaveBeenCalled()
-    expect(client.buildMetadataBlock).not.toHaveBeenCalled()
-    expect(bufferEqual(ret,expected)).toBeTruthy()
-    expect(@callback).toHaveBeenCalled()
-
-  it "should insert metadata when needed", ->
-    client = new Mpeg.Client icyMetadata: true, icyMetadataInterval: 4
-    client.metadata = title: "foobar"
-    client.byteCount = 1
-
-    ret = null
-
-    metadataBlock = new Buffer 33
-    metadataBlock.fill 0
-    metadataBlock.writeUInt8 2, 0
-    metadataBlock.write      "StreamTitle='foobar';", 1
-
-    expected = new Buffer 39
-    expected.write "bla", 0
-    expected.write "bla", 36
-    metadataBlock.copy expected, 3
-
-    spyOn(client, "push").andCallFake (data) ->
-      ret = data
-
-    spyOn this, "callback"
-
-    client._transform "blabla", "ascii", @callback
-
-    expect(client.push).toHaveBeenCalled()
-    expect(bufferEqual(ret,expected)).toBeTruthy()
-    expect(client.byteCount).toEqual 3
-    expect(@callback).toHaveBeenCalled()
+      expect(ret.type).toEqual "data"
+      expect(ret.data.toString()).toEqual "foo"
+      expect(@callback).toHaveBeenCalled()

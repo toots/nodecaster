@@ -1,6 +1,6 @@
-_ = require "underscore"
+{EventEmitter} = require "events"
 
-class module.exports.HttpHandler
+class module.exports.HttpHandler extends EventEmitter
   # virtual: createClient
   # virtual: createSource
 

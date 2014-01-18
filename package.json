@@ -27,7 +27,9 @@
     "node": "0.10.x"
   },
   "dependencies": {
+    "async"      : "0.2.9",
     "express"    : "3.4.7",
+    "ogg"        : "1.1.1",
     "underscore" : "1.5.2"
   },
   "devDependencies": {

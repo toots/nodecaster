@@ -8,6 +8,9 @@ class Mpeg.Client extends Client
   constructor: (opts = {}) ->
     super
 
+    @_writableState.objectMode = true
+
+    @metadata            = opts.metadata
     @icyMetadata         = opts.icyMetadata || false
     @icyMetadataInterval = opts.icyMetadataInterval || 16000
     @byteCount           = 0
@@ -38,24 +41,46 @@ class Mpeg.Client extends Client
     data
 
   _transform: (chunk, encoding, callback) ->
-    return super unless @icyMetadata
+    switch chunk.type
+      when "metadata"
+        @metadata = chunk.data
+      when "data"
+        data = new Buffer chunk.data
+        unless @icyMetadata
+          @push data
+          return callback()
 
-    data = new Buffer chunk, encoding
+        if @byteCount + data.length > @icyMetadataInterval
+          before = data.slice 0, @icyMetadataInterval - @byteCount
+          after  = data.slice @icyMetadataInterval - @byteCount
 
-    if @byteCount + data.length > @icyMetadataInterval
-      before = data.slice 0, @icyMetadataInterval - @byteCount
-      after  = data.slice @icyMetadataInterval - @byteCount
+          @push Buffer.concat [
+            before, @buildMetadataBlock(), after
+          ]
 
-      @push Buffer.concat [
-        before, @buildMetadataBlock(), after
-      ]
-
-      @metadata  = null
-      @byteCount = after.length
-    else
-      @push data
-      @byteCount += data.length
+          @metadata  = null
+          @byteCount = after.length
+        else
+          @push data
+          @byteCount += data.length
 
     callback()
 
 class Mpeg.Source extends Source
+  constructor: ->
+    super
+
+    @_readableState.objectMode = true
+
+  onMetadata: (metadata) ->
+    @metadata = metadata
+    @push
+      type: "metadata"
+      data: metadata
+
+  _transform: (chunk, encoding, callback) ->
+    @push
+      type: "data"
+      data: new Buffer chunk, encoding
+
+    callback()
