@@ -10,6 +10,8 @@ class module.exports.Source extends PassThrough
 
     @clients = []
 
+    @setMaxListeners 0
+
   addClient: (client) ->
     @clients.push client
     @pipe client

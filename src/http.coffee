@@ -11,5 +11,5 @@ class module.exports.HttpHandler extends EventEmitter
     @createClient req, res, (client) =>
       @source.addClient client
 
-      res.on "end", =>
+      res.on "close", =>
         @source.removeClient client

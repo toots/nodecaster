@@ -41,11 +41,12 @@ class Mpeg.Client extends Client
     data
 
   _transform: (chunk, encoding, callback) ->
+    data = chunk.data
+
     switch chunk.type
       when "metadata"
-        @metadata = chunk.data
+        @metadata = data
       when "data"
-        data = new Buffer chunk.data
         unless @icyMetadata
           @push data
           return callback()

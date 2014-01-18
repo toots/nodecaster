@@ -139,7 +139,7 @@ describe "Mpeg", ->
   
       spyOn this, "callback"
   
-      client._transform {type: "data", data: "blabla"}, null, @callback
+      client._transform {type: "data", data: new Buffer("blabla")}, null, @callback
   
       expect(client.push).toHaveBeenCalled()
       expect(bufferEqual(ret,expected)).toBeTruthy()

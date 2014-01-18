@@ -7,10 +7,12 @@ nodeCaster = enableServer app
 
 # A pre-defined mount point with basic auth
 
-app.post "/bla", express.basicAuth('username', 'password'), nodeCaster.addSource("bla", "username", "password")
+app.post "/bla", nodeCaster.addSource(
+  auth: express.basicAuth("username", "password")
+)
 
 # A generic mount point with no auth
 
-app.post "/:mount", nodeCaster.addSource("blabla")
+app.post "/:mount", nodeCaster.addSource()
 
 app.listen 8000

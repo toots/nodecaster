@@ -1,54 +1,53 @@
 _       = require "underscore"
-express = require "express"
 {Mpeg}  = require "./http/mpeg"
 {Ogg}   = require "./http/ogg"
 
 class ExpressHandler
-  constructor: (@app) ->
+  constructor: (@app, @opts = {}) ->
     @sources = {}
 
-  addSource: (mount, user, password) => (req, res, next) =>
-    unless _.isString user
-      user  = mount
-      mount = req.params.mount
+    @auth = @opts.auth || (res, req, next) ->
+      next()
 
-    if _.isString user and !_.isString password
-      password = user
-      user     = "source"
+    # Icy metadata update
+    unless @noIcyMetadata
+      @app.get "/admin/metadata", @metadataHandler
+      @app.get "/admin.cgi",      @metadataHandler
 
-    mount = "/#{mount}" unless mount[0] == '/'
+  addSource: (mount) => (req, res, next) =>
+    mount = req.params.mount unless _.isString mount
 
-    if @sources[mount]?
-      return res.status(503).end "mount point taken!"
+    @auth req, res, =>
+      mount = "/#{mount}" unless mount[0] == '/'
 
-    mime = req.get "Content-Type"
+      if @sources[mount]?
+        return res.status(503).end "mount point taken!"
 
-    switch mime
-      when "audio/mpeg"
-        handler = new Mpeg.HttpHandler @app, mount
-      when "application/ogg", "audio/ogg", "video/ogg"
-        handler = new Ogg.HttpHandler @app, mount
-      else
-        return res.send 501
+      mime = req.get "Content-Type"
 
-    @sources[mount] =
-      handler:  handler
-      user:     user
-      password: password
+      switch mime
+        when "audio/mpeg"
+          handler = new Mpeg.HttpHandler @app, mount
+        when "application/ogg", "audio/ogg", "video/ogg"
+          handler = new Ogg.HttpHandler @app, mount
+        else
+          return res.send 501
 
-    req.pipe handler.source
+      @sources[mount] = handler
 
-    @app.get mount, (req, res) ->
-      res.set "Content-Type", mime
-      handler.serveClient req, res
+      req.pipe handler.source
 
-    handler.source.on "finish", =>
-      delete @sources[mount]
+      @app.get mount, (req, res) ->
+        res.set "Content-Type", mime
+        handler.serveClient req, res
 
-      @app.routes.get = _.reject @app.routes.get, ({path}) =>
-        path == mount
+      handler.source.on "finish", =>
+        delete @sources[mount]
 
-    res.send "Thanks, brah!"
+        @app.routes.get = _.reject @app.routes.get, ({path}) =>
+          path == mount
+
+      res.send "Thanks, brah!"
 
   metadataHandler: (req, res, next) =>
     return next() unless req.query?.mount?
@@ -57,21 +56,10 @@ class ExpressHandler
 
     return next() unless source?
 
-    fn = (req, res, next) ->
-      return next() unless source.user? and source.password?
-
-      express.basicAuth(source.user, source.password) req, res, next
-
-    fn req, res, ->
-      source.handler.emit "metadata", title: req.query.title, artist: req.query.artist
+    @auth req, res, ->
+      source.emit "metadata", title: req.query.title, artist: req.query.artist
       res.send "Thanks, brah!"
 
 module.exports =
-  enableServer: (app) ->
-    nodeCaster = new ExpressHandler app
- 
-    # Icy metadata update
-    app.get "/admin/metadata", nodeCaster.metadataHandler
-    app.get "/admin.cgi",      nodeCaster.metadataHandler
-
-    nodeCaster
+  enableServer: (app, opts) ->
+    new ExpressHandler app, opts
