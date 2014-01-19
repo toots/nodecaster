@@ -1,6 +1,8 @@
 {EventEmitter} = require "events"
 
-class module.exports.HttpHandler extends EventEmitter
+module.exports.Http = Http = {}
+
+class Http.Handler extends EventEmitter
   # virtual: createClient
   # virtual: createSource
 
@@ -13,3 +15,6 @@ class module.exports.HttpHandler extends EventEmitter
 
       res.on "close", =>
         @source.removeClient client
+
+require "./http/mpeg"
+require "./http/ogg"

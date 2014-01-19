@@ -1,18 +1,10 @@
-{enableServer} = require "./express"
-express        = require "express"
+{Express} = require "./express"
+{Http}    = require "./http"
+{Mpeg}    = require "./formats/mpeg"
+{Ogg}     = require "./formats/ogg"
 
-app = express()
-
-nodeCaster = enableServer app
-
-# A pre-defined mount point with basic auth
-
-app.post "/bla", nodeCaster.addSource(
-  auth: express.basicAuth("username", "password")
-)
-
-# A generic mount point with no auth
-
-app.post "/:mount", nodeCaster.addSource()
-
-app.listen 8000
+module.exports.Nodecaster =
+  Mpeg:    Mpeg
+  Ogg:     Ogg
+  Http:    Http
+  Express: Express

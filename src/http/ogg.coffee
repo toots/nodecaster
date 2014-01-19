@@ -1,11 +1,11 @@
-{Ogg}         = require "../formats/ogg"
-{HttpHandler} = require "../http"
+{Ogg}  = require "../formats/ogg"
+{Http} = require "../http"
 
-module.exports.Ogg = Ogg
+{Client, Source} = Ogg
 
-class Ogg.HttpHandler extends HttpHandler
+class Http.Handler.Ogg extends Http.Handler
   createClient: (req, res, done) ->
-    client = new Ogg.Client
+    client = new Client
       source:      @source
       destination: res
 
@@ -13,4 +13,4 @@ class Ogg.HttpHandler extends HttpHandler
       done client
 
   createSource: ->
-    @source = new Ogg.Source
+    @source = new Source

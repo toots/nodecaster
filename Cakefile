@@ -15,3 +15,6 @@ task 'build', 'Compile coffee scripts into plain Javascript files', ->
 
 task 'spec', 'Run the spec tests', ->
   system "jasmine-node", ["--coffee", "./spec"]
+
+task 'example', 'Run the example', ->
+  system "coffee", ["./examples/express.coffee"]

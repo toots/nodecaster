@@ -1,8 +1,11 @@
 _       = require "underscore"
-{Mpeg}  = require "./http/mpeg"
-{Ogg}   = require "./http/ogg"
+{Http}  = require "./http"
 
-class ExpressHandler
+module.exports.Express = Express =
+  enableServer: (app, opts) ->
+    new Express.Handler app, opts
+
+class Express.Handler
   constructor: (@app, @opts = {}) ->
     @sources = {}
 
@@ -27,9 +30,9 @@ class ExpressHandler
 
       switch mime
         when "audio/mpeg"
-          handler = new Mpeg.HttpHandler @app, mount
+          handler = new Http.Handler.Mpeg @app, mount
         when "application/ogg", "audio/ogg", "video/ogg"
-          handler = new Ogg.HttpHandler @app, mount
+          handler = new Http.Handler.Ogg @app, mount
         else
           return res.send 501
 
@@ -59,7 +62,3 @@ class ExpressHandler
     @auth req, res, ->
       source.emit "metadata", title: req.query.title, artist: req.query.artist
       res.send "Thanks, brah!"
-
-module.exports =
-  enableServer: (app, opts) ->
-    new ExpressHandler app, opts

@@ -1,7 +1,7 @@
-{HttpHandler} = require "../src/http"
-{Source}      = require "../src/source"
+{Http}   = require "../src/http"
+{Source} = require "../src/source"
 
-describe "HttpHandler", ->
+describe "Http.Handler", ->
   beforeEach ->
     @mount = "foo"
 
@@ -13,7 +13,7 @@ describe "HttpHandler", ->
 
     @source = source = new Source
 
-    class @TestHandler extends HttpHandler
+    class @TestHandler extends Http.Handler
       createSource: ->
         source
 

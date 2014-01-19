@@ -1,9 +1,9 @@
-{Mpeg}        = require "../formats/mpeg"
-{HttpHandler} = require "../http"
+{Mpeg} = require "../formats/mpeg"
+{Http} = require "../http"
 
-module.exports.Mpeg = Mpeg
+{Client, Source} = Mpeg
 
-class Mpeg.HttpHandler extends HttpHandler
+class Http.Handler.Mpeg extends Http.Handler
   constructor: ->
     super
 
@@ -16,7 +16,7 @@ class Mpeg.HttpHandler extends HttpHandler
     else
       icyMetadata = false
 
-    client = new Mpeg.Client
+    client = new Client
       icyMetadata: icyMetadata
       metadata:    @source?.metadata
       destination: res
@@ -27,4 +27,4 @@ class Mpeg.HttpHandler extends HttpHandler
     done client
 
   createSource: ->
-    @source = new Mpeg.Source
+    @source = new Source
