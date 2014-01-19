@@ -1,6 +1,7 @@
 bufferEqual = require "buffer-equal"
-{Mpeg}      = require "../../src/formats/mpeg"
-  
+{Client}    = require "../../src/client"
+{Source}    = require "../../src/source"
+
 describe "Mpeg", ->
   beforeEach ->
     @callback = ->
@@ -11,25 +12,25 @@ describe "Mpeg", ->
   describe "Client", ->
   
     it "should do initialize with ICY metadata if told to", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       expect(client.icyMetadata).toEqual false
       expect(client.icyMetadataInterval).toEqual 16000
   
-      client = new Mpeg.Client icyMetadata: true, icyMetadataInterval: 1234
+      client = new Client.Mpeg icyMetadata: true, icyMetadataInterval: 1234
   
       expect(client.icyMetadata).toEqual true
       expect(client.icyMetadataInterval).toEqual 1234
   
     it "should listen to the metadata events", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       client.emit "metadata", "foo"
   
       expect(client.metadata).toEqual "foo"
   
     it "should be able to build a metadata block", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       client.metadata = title: "foobar"
   
@@ -41,7 +42,7 @@ describe "Mpeg", ->
       expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
   
     it "should return an empty block where there are no metadata", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       metadataBlock = new Buffer 1
       metadataBlock.fill 0
@@ -49,7 +50,7 @@ describe "Mpeg", ->
       expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
   
     it "should be able to combine title and artist when given", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       client.metadata = title: "foo", artist: "bar"
   
@@ -61,7 +62,7 @@ describe "Mpeg", ->
       expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
   
     it "should cut stream title when too long", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       buffer = new Buffer 4083
       buffer.fill "a"
@@ -81,9 +82,9 @@ describe "Mpeg", ->
       expect(bufferEqual(client.buildMetadataBlock(), metadataBlock)).toBeTruthy()
   
     it "should do nothing if not using icy metadata", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
-      spyOn Mpeg.Client.__super__, "_transform"
+      spyOn Client.Mpeg.__super__, "_transform"
       spyOn client, "buildMetadataBlock"
       spyOn this, "callback"
   
@@ -100,7 +101,7 @@ describe "Mpeg", ->
       expect(@callback).toHaveBeenCalled()
   
     it "should do nothing when using icy metadata but below byteCount", ->
-      client = new Mpeg.Client icyMetadata: true
+      client = new Client.Mpeg icyMetadata: true
   
       ret      = null
   
@@ -118,7 +119,7 @@ describe "Mpeg", ->
       expect(@callback).toHaveBeenCalled()
   
     it "should insert metadata when needed", ->
-      client = new Mpeg.Client icyMetadata: true, icyMetadataInterval: 4
+      client = new Client.Mpeg icyMetadata: true, icyMetadataInterval: 4
       client.metadata = title: "foobar"
       client.byteCount = 1
   
@@ -148,7 +149,7 @@ describe "Mpeg", ->
       expect(@callback).toHaveBeenCalled()
   
     it "should process metadata", ->
-      client = new Mpeg.Client
+      client = new Client.Mpeg
   
       spyOn this, "callback"
   
@@ -159,7 +160,7 @@ describe "Mpeg", ->
   
   describe "Source", ->
     it "should be able to receive metadata", ->
-      source = new Mpeg.Source
+      source = new Source.Mpeg
   
       spyOn source, "push"
   
@@ -169,7 +170,7 @@ describe "Mpeg", ->
       expect(source.push).toHaveBeenCalledWith type: "metadata", data: "foo"
 
     it "should be able to process data", ->
-      source = new Mpeg.Source
+      source = new Source.Mpeg
 
       ret = null
 

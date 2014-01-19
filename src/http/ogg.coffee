@@ -1,11 +1,10 @@
-{Ogg}  = require "../formats/ogg"
-{Http} = require "../http"
-
-{Client, Source} = Ogg
+{Client} = require "../client"
+{Http}   = require "../http"
+{Source} = require "../source"
 
 class Http.Handler.Ogg extends Http.Handler
   createClient: (req, res, done) ->
-    client = new Client
+    client = new Client.Ogg
       source:      @source
       destination: res
 
@@ -13,4 +12,4 @@ class Http.Handler.Ogg extends Http.Handler
       done client
 
   createSource: ->
-    @source = new Source
+    @source = new Source.Ogg

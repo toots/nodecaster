@@ -2,9 +2,7 @@ _             = require "underscore"
 {Client}      = require "../client"
 {Source}      = require "../source"
 
-module.exports.Mpeg = Mpeg = {}
-
-class Mpeg.Client extends Client
+class Client.Mpeg extends Client
   constructor: (opts = {}) ->
     super
 
@@ -67,7 +65,7 @@ class Mpeg.Client extends Client
 
     callback()
 
-class Mpeg.Source extends Source
+class Source.Mpeg extends Source
   constructor: ->
     super
 

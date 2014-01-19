@@ -4,9 +4,7 @@ ogg            = require "ogg"
 {Client}       = require "../client"
 {Source}       = require "../source"
 
-module.exports.Ogg = Ogg = {}
-
-class Ogg.Client extends Client
+class Client.Ogg extends Client
   constructor: (opts = {}) ->
     super
 
@@ -68,7 +66,7 @@ class Ogg.Client extends Client
       when "packet"
         @addPacket serialno, chunk.data, callback
 
-class Ogg.Source extends Source
+class Source.Ogg extends Source
   constructor: ->
     super
 

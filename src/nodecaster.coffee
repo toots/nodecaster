@@ -1,10 +1,10 @@
+{Client}  = require "./client"
 {Express} = require "./express"
 {Http}    = require "./http"
-{Mpeg}    = require "./formats/mpeg"
-{Ogg}     = require "./formats/ogg"
+{Source}  = require "./source"
 
 module.exports.Nodecaster =
-  Mpeg:    Mpeg
-  Ogg:     Ogg
-  Http:    Http
+  Client:  Client
   Express: Express
+  Http:    Http
+  Source:  Source

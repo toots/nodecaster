@@ -10,3 +10,6 @@ class module.exports.Client extends PassThrough
       @metadata = metadata
 
     @on "data", ->
+
+require "./formats/mpeg"
+require "./formats/ogg"

@@ -1,6 +1,7 @@
-async = require "async"
-{Ogg} = require "../../src/formats/ogg"
-ogg   = require "ogg"
+async    = require "async"
+ogg      = require "ogg"
+{Source} = require "../../src/source"
+{Client} = require "../../src/client"
 
 describe "Ogg", ->
   beforeEach ->
@@ -11,16 +12,16 @@ describe "Ogg", ->
 
   describe "Client", ->
     it "should receive a source", ->
-      client = new Ogg.Client source: "foo"
+      client = new Client.Ogg source: "foo"
 
       expect(client.source).toEqual "foo"
 
     it "should prepare itself", ->
-      spyOn Ogg.Client.prototype, "prepare"
+      spyOn Client.Ogg.prototype, "prepare"
 
-      client = new Ogg.Client source: {}
+      client = new Client.Ogg source: {}
 
-      expect(Ogg.Client::prepare).toHaveBeenCalled()
+      expect(Client.Ogg::prepare).toHaveBeenCalled()
 
     it "should be able to output header", ->
       streams = [
@@ -32,7 +33,7 @@ describe "Ogg", ->
       streams = {}
       page    = "firstPage"
 
-      client = new Ogg.Client source:
+      client = new Client.Ogg source:
         streams: streams
 
       spyOn(client, "getStream").andCallFake (serialno) ->
@@ -51,7 +52,7 @@ describe "Ogg", ->
       expect(ret).toEqual streams
 
     it "should flush when reaching page 2 and 3", ->
-      client = new Ogg.Client
+      client = new Client.Ogg
 
       stream =
         flush: ->
@@ -84,7 +85,7 @@ describe "Ogg", ->
       expect(fn).toHaveBeenCalled()
 
     it "should be able to add packets", ->
-      client = new Ogg.Client
+      client = new Client.Ogg
 
       stream =
         packetin: ->
@@ -136,7 +137,7 @@ describe "Ogg", ->
       expect(stream.pageout).toHaveBeenCalled()
 
     it "should know how to transform data", ->
-      client = new Ogg.Client
+      client = new Client.Ogg
 
       spyOn client, "onPage"
       spyOn client, "addPacket"
@@ -174,7 +175,7 @@ describe "Ogg", ->
 
       spyOn(ogg, "Decoder").andReturn decoder
 
-      source = new Ogg.Source
+      source = new Source.Ogg
 
       spyOn source, "push"
       
@@ -241,7 +242,7 @@ describe "Ogg", ->
       expect(source.streams).toEqual []
 
     it "should know how to _transform data", ->
-      source = new Ogg.Source
+      source = new Source.Ogg
 
       spyOn source.decoder, "write"
 
