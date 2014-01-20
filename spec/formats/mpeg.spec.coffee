@@ -134,7 +134,7 @@ describe "Mpeg", ->
       expected.write "bla", 0
       expected.write "bla", 36
       metadataBlock.copy expected, 3
-  
+
       spyOn(client, "push").andCallFake (data) ->
         ret = data
   
@@ -145,6 +145,48 @@ describe "Mpeg", ->
       expect(client.push).toHaveBeenCalled()
       expect(bufferEqual(ret,expected)).toBeTruthy()
       expect(client.byteCount).toEqual 3
+      expect(client.metadata).toBeNull()
+      expect(@callback).toHaveBeenCalled()
+
+    it "should insert metadata many times when needed", ->
+      client = new Client.Mpeg icyMetadata: true, icyMetadataInterval: 4
+      client.metadata = title: "foobar"
+      client.byteCount = 1
+
+      ret = null
+      res = null
+
+      metadataBlock = new Buffer 33
+      metadataBlock.fill 0
+      metadataBlock.writeUInt8 2, 0
+      metadataBlock.write      "StreamTitle='foobar';", 1
+
+      first = true
+
+      expected = new Buffer 40
+      expected.write "bla",  0
+      expected.write "blab", 36
+      metadataBlock.copy expected, 3
+
+      last = new Buffer 3
+      last.fill 0
+      last.write "la", 1
+
+      spyOn(client, "push").andCallFake (data) ->
+        if first
+          ret = data
+        else
+          res = data
+        first = false
+
+      spyOn this, "callback"
+
+      client._transform {type: "data", data: new Buffer("blablabla")}, null, @callback
+
+      expect(client.push).toHaveBeenCalled()
+      expect(bufferEqual(ret,expected)).toBeTruthy()
+      expect(bufferEqual(res,last)).toBeTruthy()
+      expect(client.byteCount).toEqual 2
       expect(client.metadata).toBeNull()
       expect(@callback).toHaveBeenCalled()
   

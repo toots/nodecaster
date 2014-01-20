@@ -49,17 +49,22 @@ class Client.Mpeg extends Client
           @push data
           return callback()
 
-        if @byteCount + data.length > @icyMetadataInterval
-          before = data.slice 0, @icyMetadataInterval - @byteCount
-          after  = data.slice @icyMetadataInterval - @byteCount
+        while @byteCount + data.length > @icyMetadataInterval
+          before    = data.slice 0, @icyMetadataInterval - @byteCount
+          remaining = data.slice @icyMetadataInterval - @byteCount
+
+          afterLen   = Math.min @icyMetadataInterval, remaining.length
+          after      = remaining.slice 0, afterLen
+          data       = remaining.slice afterLen
+          @byteCount = afterLen
 
           @push Buffer.concat [
             before, @buildMetadataBlock(), after
           ]
 
           @metadata  = null
-          @byteCount = after.length
-        else
+
+        if data.length > 0
           @push data
           @byteCount += data.length
 
