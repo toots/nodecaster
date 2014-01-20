@@ -2,7 +2,7 @@
 
 class module.exports.Client extends PassThrough
   constructor: (opts = {}) ->
-    super highWaterMark: opts.queueSize || 524288
+    super
 
     @pipe opts.destination if opts.destination?
 
