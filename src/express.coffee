@@ -13,7 +13,7 @@ class Express.Handler
       next()
 
     # Icy metadata update
-    unless @noIcyMetadata
+    unless @opts.noIcyMetadata
       @app.get "/admin/metadata", @metadataHandler
       @app.get "/admin.cgi",      @metadataHandler
 
