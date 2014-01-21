@@ -10,10 +10,7 @@ class Http.Handler.Mpeg extends Http.Handler
       @source?.onMetadata metadata
 
   createClient: (req, res, done) ->
-    if req.get("Icy-MetaData") == "1"
-      icyMetadata = true
-    else
-      icyMetadata = false
+    icyMetadata = req.get("Icy-MetaData") == "1"
 
     client = new Client.Mpeg
       icyMetadata: icyMetadata

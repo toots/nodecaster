@@ -11,10 +11,10 @@ class Http.Handler extends EventEmitter
 
   serveClient: (req, res) ->
     @createClient req, res, (client) =>
-      @source.addClient client
+      @source.pipe client
 
       res.on "close", =>
-        @source.removeClient client
+        @source.unpipe client
 
 require "./http/mpeg"
 require "./http/ogg"

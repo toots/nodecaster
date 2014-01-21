@@ -8,14 +8,4 @@ class module.exports.Source extends PassThrough
     # Always flush data in sources
     @on "data", ->
 
-    @clients = []
-
     @setMaxListeners 0
-
-  addClient: (client) ->
-    @clients.push client
-    @pipe client
-
-  removeClient: (client) ->
-    @clients = _.without @clients, client
-    @unpipe client

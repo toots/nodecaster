@@ -9,7 +9,7 @@ class Client.Mpeg extends Client
     @_writableState.objectMode = true
 
     @metadata            = opts.metadata
-    @icyMetadata         = opts.icyMetadata || false
+    @icyMetadata         = opts.icyMetadata         || false
     @icyMetadataInterval = opts.icyMetadataInterval || 16000
     @byteCount           = 0
 

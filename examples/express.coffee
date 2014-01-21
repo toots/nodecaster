@@ -23,13 +23,19 @@ getFile = ->
     /\.mp3$/i.test file
 
 app.get "/on-demand", (req, res, next) ->
+  icyMetadata = req.get("Icy-MetaData") == "1"
+
+  input  = fs.createReadStream getFile()
+  source = new Nodecaster.Source.Mpeg
+  client = new Nodecaster.Client.Mpeg
+    icyMetadata: icyMetadata
+    metadata:
+      title: "On-demand stream for your pleasure!"
+
   res.set "Content-Type", "audio/mpeg"
+  res.set "icy-metaint", client.icyMetadataInterval if icyMetadata
 
-  handler = new Nodecaster.Http.Handler.Mpeg
-
-  handler.createClient req, res, (client) ->
-    fs.createReadStream(getFile()).pipe handler.source
-    handler.serveClient req, res
+  input.pipe(source).pipe(client).pipe res
 
 # A generic mount point with no auth
 
