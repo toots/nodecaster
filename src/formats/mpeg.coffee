@@ -56,7 +56,7 @@ class Client.Mpeg extends Client
           afterLen   = Math.min @icyMetadataInterval, remaining.length
           after      = remaining.slice 0, afterLen
           data       = remaining.slice afterLen
-          @byteCount = afterLen
+          @byteCount = after.length
 
           @push Buffer.concat [
             before, @buildMetadataBlock(), after
